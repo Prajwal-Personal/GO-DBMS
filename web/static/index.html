@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniDB-Go | Pipeline Visualization</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="glass-panel main-header">
+            <div class="logo">
+                <span class="logo-icon">🔮</span>
+                <h1>UniDB-Go Engine</h1>
+            </div>
+            <div class="status-badge" id="system-status">System Ready</div>
+        </header>
+
+        <!-- TOP: Query Editor -->
+        <section class="glass-panel feature-section editor-section">
+            <div class="panel-header">
+                <h2>1. Unified SQL Editor</h2>
+                <button id="run-btn" class="primary-btn">
+                    <span>Execute Pipeline</span>
+                    <div class="btn-loader hidden"></div>
+                </button>
+            </div>
+            <div class="editor-container">
+                <textarea id="query-input" spellcheck="false">SELECT u.name, o.total 
+FROM postgres.users u 
+JOIN mysql.orders o ON u.id = o.user_id 
+WHERE u.id > 0</textarea>
+            </div>
+            <!-- Global error banner -->
+            <div id="error-banner" class="error-banner hidden">
+                <span class="error-icon">⚠️</span>
+                <span id="error-text">An error occurred</span>
+            </div>
+            <div id="cache-banner" class="cache-banner hidden">
+                <span class="cache-icon">⚡</span>
+                <span>CACHE HIT: Pipeline execution bypassed. Served from memory.</span>
+            </div>
+        </section>
+
+        <!-- The Pipeline Line connecting components -->
+        <div class="pipeline-connector"></div>
+
+        <!-- SECTION 1: Parser & AST -->
+        <section class="glass-panel feature-section pipeline-node" id="section-parser">
+            <div class="section-badge"><div class="icon">🔍</div> Phase 4 </div>
+            <h2>Query Parser & AST Generator</h2>
+            <div class="split-view">
+                <div class="description-side">
+                    <p>The Vitess-based parser intercepts the raw SQL schema and transforms the semantic query into an Abstract Syntax Tree (AST) optimized for cross-database operations.</p>
+                    <div class="block-indicator" id="parser-status">Waiting for execution...</div>
+                </div>
+                <div class="data-side">
+                    <pre><code id="ast-json" class="language-json">No AST Generated.</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <div class="pipeline-connector"></div>
+
+        <!-- SECTION 2: Security Engine -->
+        <section class="glass-panel feature-section pipeline-node" id="section-security">
+            <div class="section-badge"><div class="icon">🛡️</div> Phase 7 </div>
+            <h2>Security Threat Engine</h2>
+            <div class="split-view">
+                <div class="description-side">
+                    <p>The underlying AST acts as a defensive shield. It scans for injected attack queries (e.g. 1=1), behavior anomalies, and triggers if data exfiltration patterns match sensitive tables.</p>
+                </div>
+                <div class="data-side flex-center">
+                    <div class="security-card" id="security-card">
+                        <div class="sec-status" id="sec-status">Awaiting Query...</div>
+                        <div class="sec-reason" id="sec-reason">-</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="pipeline-connector"></div>
+
+        <!-- SECTION 3: Smart Planner & NoSQL Translation -->
+        <section class="glass-panel feature-section pipeline-node" id="section-planner">
+            <div class="section-badge"><div class="icon">🧠</div> Phases 2 & 5 </div>
+            <h2>Smart Planner & NoSQL Routing</h2>
+            <div class="split-view">
+                <div class="description-side">
+                    <p>The planner breaks down the generic Logical Plan into DB-specific physical routes deciding which database instances hold what tables. Advanced NoSQL drivers will intercept routing to execute BSON transformations dynamically.</p>
+                    <div class="block-indicator" id="planner-status">Waiting...</div>
+                </div>
+                <div class="data-side">
+                    <div id="plan-container" class="plan-cards">
+                        <div class="empty-state">No execution plan generated.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <div class="pipeline-connector"></div>
+
+        <!-- SECTION 4: Performance & Pooling -->
+        <section class="glass-panel feature-section pipeline-node" id="section-stats">
+            <div class="section-badge"><div class="icon">⚙️</div> Phase 8 </div>
+            <h2>Dynamic Connection Management</h2>
+            <p style="margin-bottom: 1.5rem; color: var(--text-muted);">Simulated Adaptive Pool Managers assigning live execution threads per DB connector.</p>
+            <div class="stats-grid" id="stats-grid">
+                <div class="empty-state">Loading live pool statistics...</div>
+            </div>
+        </section>
+
+        <div class="pipeline-connector"></div>
+
+        <!-- SECTION 5: Final Combined Execution -->
+        <section class="glass-panel feature-section pipeline-node" id="section-executor">
+            <div class="section-badge" style="background:var(--accent);"><div class="icon">⚡</div> Phases 3 & 6 </div>
+            <h2>Final Federation Execution</h2>
+            <p style="margin-bottom: 1.5rem; color: var(--text-muted);">The separate physical routes fetch payload independently before routing to the Memory Hash-Join Merger for single-API response delivery.</p>
+            
+            <div class="table-container" id="results-table-container">
+                <div class="empty-state" id="results-empty">Run a query to see final federated results.</div>
+                <table id="results-table" class="hidden">
+                    <thead><tr id="results-thead"></tr></thead>
+                    <tbody id="results-tbody"></tbody>
+                </table>
+            </div>
+
+            <!-- Execution Pipeline Metrics -->
+            <div class="metrics-bar hidden" id="metrics-bar" style="margin-top: 1.5rem;">
+                <div class="metric"><label>Total Duration:</label> <span id="m-total">0ms</span></div>
+                <div class="metric"><label>Security:</label> <span id="m-security">0ms</span></div>
+                <div class="metric"><label>AST Parse:</label> <span id="m-parse">0ms</span></div>
+                <div class="metric"><label>Planner:</label> <span id="m-plan">0ms</span></div>
+                <div class="metric"><label>Federation Exec:</label> <span id="m-exec">0ms</span></div>
+            </div>
+        </section>
+
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
