@@ -12,7 +12,7 @@ func GeneratePlan(ast *parser.QueryAST) (*ExecutionPlan, error) {
 	
 	// Single DB plan
 	db := "default"
-	queryStr := "SELECT * FROM ..."
+	queryStr := ast.RawQuery
 	if len(ast.Tables) > 0 {
 		db = ast.Tables[0].Database
 		if db == "mongodb" {
@@ -21,11 +21,18 @@ func GeneratePlan(ast *parser.QueryAST) (*ExecutionPlan, error) {
 		}
 	}
 
+	stepType := "SCAN"
+	if ast.Type == "DDL" {
+		stepType = "DDL"
+	} else if ast.Type == "META" {
+		stepType = "META"
+	}
+
 	plan := &ExecutionPlan{
 		Steps: []ExecutionStep{
 			{
 				ID:       1,
-				Type:     "SCAN",
+				Type:     stepType,
 				Database: db,
 				Query:    queryStr,
 			},

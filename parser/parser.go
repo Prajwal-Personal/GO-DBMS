@@ -29,6 +29,16 @@ func Parse(query string) (*QueryAST, error) {
 		ast, err = parseUpdate(node)
 	case *sqlparser.Delete:
 		ast, err = parseDelete(node)
+	case *sqlparser.DDL:
+		ast, err = parseDDL(node)
+	case *sqlparser.DBDDL:
+		ast, err = parseDBDDL(node)
+	case *sqlparser.Show:
+		ast, err = parseShow(node)
+	case *sqlparser.Use:
+		ast, err = parseUse(node)
+	case *sqlparser.Set, *sqlparser.Begin, *sqlparser.Commit, *sqlparser.Rollback:
+		ast = &QueryAST{Type: "META"}
 	default:
 		return nil, ErrUnsupportedQuery
 	}
@@ -38,9 +48,11 @@ func Parse(query string) (*QueryAST, error) {
 	}
 
 	// Validate
-	if len(ast.Tables) == 0 {
+	if len(ast.Tables) == 0 && ast.Type != "DDL" && ast.Type != "META" {
 		return nil, ErrInvalidQuery
 	}
+
+	ast.RawQuery = query
 
 	// Save to cache
 	saveToCache(query, ast)

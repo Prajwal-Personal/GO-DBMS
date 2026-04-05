@@ -3,6 +3,7 @@ package parser
 // QueryAST represents the normalized internal AST
 type QueryAST struct {
 	Type              string // SELECT, INSERT, UPDATE, DELETE
+	RawQuery          string
 	Tables            []TableNode
 	Fields            []FieldNode
 	Conditions        []ConditionNode
